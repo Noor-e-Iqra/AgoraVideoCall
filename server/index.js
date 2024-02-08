@@ -43,6 +43,9 @@ app.post('/generateToken', (req, res) => {
 const switchRole = () => {
   if (connectedSockets.length === 0) return;
 
+  // broadcast clear notification
+  io.emit('clearNotification');
+  
   // Switch role for the current performer
   io.to(connectedSockets[currentPerformerIndex].id).emit(
     'switchRole',

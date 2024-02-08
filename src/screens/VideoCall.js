@@ -11,7 +11,6 @@ import {SafeAreaView, Dimensions, StyleSheet, Text, View} from 'react-native';
 import RtcEngine, {ClientRole} from 'react-native-agora';
 import {io} from 'socket.io-client';
 import {BASE_URL} from '../utils/config';
-const {width} = Dimensions.get('window');
 
 const connectionData = {
   appId: 'f45d88ba62e0409ea4b7f4786043ddca',
@@ -66,10 +65,16 @@ const VideoCallScreen = ({user}) => {
       } else setNotification(data);
     });
 
+    //  clear notification on all devices when receiving a WebSocket event
+    const clearNotiListener = socket?.on('clearNotification', () => {
+      setNotification(null);
+    });
+
     return () => {
       socket?.offAny(initial);
       socket?.offAny(switchRole);
       socket?.offAny(notiListener);
+      socket?.offAny(clearNotiListener);
     };
   }, [socket, role]);
 
@@ -84,7 +89,6 @@ const VideoCallScreen = ({user}) => {
   function updateRole(newRole) {
     setTimer(120);
     startTimer();
-    setNotification(null);
     if (newRole === 'performer') setRole(ClientRole.Broadcaster);
     else setRole(ClientRole.Audience);
   }
@@ -95,64 +99,32 @@ const VideoCallScreen = ({user}) => {
         const newTimer = prevTimer > 0 ? prevTimer - 1 : 0;
         if (newTimer === 0) {
           clearInterval(intervalId);
-          setNotification(null);
         }
         return newTimer;
       });
-    }, 1000);
+    }, 1200);
   }
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'black'}}>
+      {/* video call ui */}
       <AgoraUIKit
         connectionData={connectionData}
         rtcCallbacks={rtcCallbacks}
         settings={{role: role, layout: 0}}
       />
-      <View
-        style={{
-          padding: 20,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          marginTop: '20%',
-        }}>
-        <Text
-          style={{
-            fontSize: 20,
-            color: 'white',
-          }}>
-          {user.name}
+      {/* device name */}
+      <View style={styles.top_container}>
+        <Text style={styles.name}>{user.name}</Text>
+        {/* role */}
+        <Text style={styles.role}>
+          {role === ClientRole.Broadcaster ? 'Performer' : 'Audience'}
         </Text>
-        {/* {role === ClientRole.Broadcaster && (
-          <Text
-            style={{
-              fontSize: 16,
-              color: 'white',
-            }}>
-            {formatTime(timer)}
-          </Text>
-        )} */}
       </View>
+      {/* notification */}
       {notification && (
-        <View
-          style={{
-            padding: 20,
-            position: 'absolute',
-            right: 0,
-            borderRadius: 10,
-            bottom: '20%',
-            backgroundColor: 'white',
-          }}>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: 'bold',
-              color: 'black',
-            }}>
+        <View style={styles.bottom_container}>
+          <Text style={styles.noti}>
             {role === ClientRole.Broadcaster
               ? `${notification} ${timer} seconds`
               : notification}
@@ -164,12 +136,36 @@ const VideoCallScreen = ({user}) => {
 };
 
 const styles = StyleSheet.create({
-  localBtn: {
-    height: 50,
-    width: 50,
-    borderRadius: 30,
-    borderWidth: 2,
-    backgroundColor: 'red',
+  top_container: {
+    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    marginTop: '20%',
+  },
+  name: {
+    fontSize: 20,
+    color: 'white',
+  },
+  role: {
+    fontSize: 18,
+    color: 'white',
+  },
+  bottom_container: {
+    padding: 20,
+    position: 'absolute',
+    right: 0,
+    borderRadius: 10,
+    bottom: '20%',
+    backgroundColor: 'white',
+  },
+  noti: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
   },
 });
 
