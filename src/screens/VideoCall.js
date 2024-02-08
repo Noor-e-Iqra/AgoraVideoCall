@@ -7,13 +7,13 @@
 
 import AgoraUIKit from 'agora-rn-uikit';
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView, Dimensions, StyleSheet, Text, View} from 'react-native';
+import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
 import RtcEngine, {ClientRole} from 'react-native-agora';
 import {io} from 'socket.io-client';
-import {BASE_URL} from '../utils/config';
+import {AGORA_ID, BASE_URL} from '../utils/config';
 
 const connectionData = {
-  appId: 'f45d88ba62e0409ea4b7f4786043ddca',
+  appId: AGORA_ID,
   channel: 'test',
 };
 
@@ -77,14 +77,6 @@ const VideoCallScreen = ({user}) => {
       socket?.offAny(clearNotiListener);
     };
   }, [socket, role]);
-
-  const formatTime = seconds => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(
-      remainingSeconds,
-    ).padStart(2, '0')}`;
-  };
 
   function updateRole(newRole) {
     setTimer(120);
