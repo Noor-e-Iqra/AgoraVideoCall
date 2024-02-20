@@ -12,6 +12,7 @@
   "dependencies": {
     "agora-react-native-rtm": "^1.5.0",
     "agora-rn-uikit": "^4.0.0",
+    "dotenv": "^16.4.5",
     "react": "18.2.0",
     "react-native": "0.73.4",
     "react-native-agora": "^3.7.1",
